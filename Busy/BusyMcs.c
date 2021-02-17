@@ -2,7 +2,7 @@
 // Created by 莫莫 on 2021/2/17.
 //
 // 异步
-//
+// 混合策略
 // standard include
 #include <stdlib.h>
 #include <stdio.h>
