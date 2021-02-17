@@ -242,6 +242,7 @@ void game(void)
 
         if(typeBusy(player1)==-1 || type1==0)
         {
+            player_s1[player1]=(int) randi(2);   //busy和周围都是busy的个体，将随机改变策略
             continue;
         }else{
             while(1)
