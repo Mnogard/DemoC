@@ -18,7 +18,7 @@
 #define RUN 1
 #define IN 4
 #define pc_b 0.2
-#define MEM 20
+#define MEM 0
 
 
 int steps;
@@ -251,6 +251,7 @@ void game(void)
             strat1 = player_s1[player1];
 
             //busy和busy周围的个体根据记忆长度决定策略
+            u=0.0;
             for(j=MEM-1;j>=0;j--)
             {
                 if(player_m1[player1][j]==strat1){
