@@ -17,7 +17,8 @@
 #define K           0.1     /* temperature */
 #define RUN 1
 #define IN 4
-#define pc_b 0.9
+#define pc_b 0.2
+#define pc_Tb  0.8
 
 
 int steps;
@@ -240,9 +241,16 @@ void game(void)
         player1 = (int) randi(SIZE);
         type1 = player_type[player1];
 
+
         if(typeBusy(player1)==-1 || type1==0)
         {
-            player_s1[player1]=(int) randi(2);   //busy和周围都是busy的个体，将随机改变策略
+            strat1 = player_s1[player1];
+            ran_p=randf();
+            //busy和周围都是busy的个体，将按照突变概率进行突变
+            if(ran_p<=pc_Tb)
+            {
+                player_s1[player1]= strat1==1? 0:1;
+            }
             continue;
         }else{
             while(1)
