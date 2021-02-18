@@ -17,8 +17,8 @@
 #define K           0.1     /* temperature */
 #define RUN 1
 #define IN 4
-#define pc_b 0.2
-#define MEM 0
+#define pc_b 0.0
+#define MEM 20
 
 
 int steps;
@@ -293,8 +293,22 @@ void game(void)
                     {
                         dP=U1-U2;
 
+                        u=0.0;
 
-                        p=1/(1+exp(dP/K));
+                        for(j=MEM-1;j>=0;j--)
+                        {
+                            if(player_m1[player2][j]==strat2){
+                                ++u;
+                            }
+                            else {
+                                break;
+                            }
+
+                        }
+
+                        wx=(double)u/MEM;
+
+                        p=wx/(1+exp(dP/K));
                         ran_p=randf();
                         if(ran_p<=p)
                         {
