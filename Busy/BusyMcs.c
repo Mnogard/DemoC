@@ -18,7 +18,7 @@
 #define RUN 1
 #define IN 4
 #define pc_b 0.2
-#define pc_Tb  0.8
+#define MEM 20
 
 
 int steps;
@@ -29,14 +29,14 @@ double b;
 
 typedef int       tomb1[SIZE];
 typedef long int  tomb3[SIZE][IN];
-
+typedef int       tomb5[SIZE][MEM];
 typedef double    tomb6[SIZE];
 typedef double    tomb9[MC_STEPS];
 
 tomb1 player_s1;            /* matrix, containing player's strategies: 0 (C) & 1(D) */
 tomb3 player_n1;            /* matrix, containing players neighbours */
 tomb1 player_type;
-
+tomb5 player_m1;
 tomb9 each_p;
 
 
@@ -129,6 +129,10 @@ void initial()
                 break;
         }while(1);
         player_type[pos]=0;   //type = 0 is busyer
+    }
+    for(j=0; j<MEM; j++)
+    {
+        player_m1[i][j]=(int)randi(2);		// stochastic recording of previous state
     }
 }
 
@@ -233,7 +237,7 @@ void game(void)
     int player1,player2;
     int suiji;
 
-    double p,dP;
+    double p,dP,u,wx;
     double ran_p;
 
     for(i=0;i<SIZE;i++)
@@ -245,12 +249,30 @@ void game(void)
         if(typeBusy(player1)==-1 || type1==0)
         {
             strat1 = player_s1[player1];
+
+            //busy和busy周围的个体根据记忆长度决定策略
+            for(j=MEM-1;j>=0;j--)
+            {
+                if(player_m1[player1][j]==strat1){
+                    ++u;
+                }
+                else {
+                    break;
+                }
+
+            }
+            wx=(double)u/MEM;
             ran_p=randf();
-            //busy和周围都是busy的个体，将按照突变概率进行突变
-            if(ran_p<=pc_Tb)
+            if(ran_p>=wx)
             {
                 player_s1[player1]= strat1==1? 0:1;
             }
+
+            //更新记忆
+            for(j=1; j<MEM; j++) {
+                player_m1[player1][j - 1] = player_m1[player1][j];
+            }
+            player_m1[player1][MEM - 1] = player_s1[player1];
             continue;
         }else{
             while(1)
@@ -278,6 +300,11 @@ void game(void)
                             player_s1[player1]=strat2;
                         }
                     }
+                    //更新记忆
+                    for(j=1; j<MEM; j++) {
+                        player_m1[player1][j - 1] = player_m1[player1][j];
+                    }
+                    player_m1[player1][MEM - 1] = player_s1[player1];
                     break;
                 }
             }
