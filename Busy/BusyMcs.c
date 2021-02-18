@@ -17,8 +17,8 @@
 #define K           0.1     /* temperature */
 #define RUN 1
 #define IN 4
-#define pc_b 0.2
-#define pc_Tb  0.8
+#define pc_b 0.5
+#define pc_Tb  0.5
 
 
 int steps;
@@ -44,7 +44,7 @@ void prodgraph(void);
 void initial(void);
 void game(void);
 void tongji(void);
-
+void init_initial();
 
 FILE *outfile2;
 
@@ -117,6 +117,32 @@ void initial()
     for (i=0; i<SIZE; i++)
     {
         player_s1[i]=(int)randi(2);
+        player_type[i]=1;
+    }
+
+    for(i=0; i<busyer; i++)
+    {
+        do
+        {
+            pos=randi(SIZE);
+            if(player_type[pos]==1)
+                break;
+        }while(1);
+        player_type[pos]=0;   //type = 0 is busyer
+    }
+}
+
+void init_initial()
+{
+    int i, j;
+    int pos;
+
+    busyer=(int)(SIZE*pc_b); 	// initial number of cooperators
+    nbusyer=SIZE-busyer;
+
+
+    for (i=0; i<SIZE; i++)
+    {
         player_type[i]=1;
     }
 
@@ -360,6 +386,7 @@ int main()
         {
             tongji();
             game();
+            init_initial();
             if(steps%1==0)
             {
                 x=(double)cooperator/SIZE;
