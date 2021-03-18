@@ -18,12 +18,15 @@
 #define RUN    1
 #define IN     4
 #define derta 0.2
+#define alpha1 1.0
+#define alpha2 8.0
 
 
 int steps;
 int defector, cooperator;
 
 double b;
+double u;
 
 typedef int       tomb1[SIZE];
 typedef long int  tomb3[SIZE][IN];
@@ -252,17 +255,19 @@ void game(void)
     int i, j,k,m1,m2;
     int strat1,strat2;
     double U1,U2;
-    int player1,player2;
+    int player1,player2,type1,type2;
     int suiji;
 
-    double p,dP;
+    double p,dP,dP_h;
     double ran_p;
+    double alpha;
 
     for(i=0;i<SIZE;i++)
     {
         player1 = (int) randi(SIZE);
         strat1 = player_s1[player1];
         U1=calc_payoff(player1);
+        type1 = player_tp[player1];
 
         suiji= (int) randi(IN);
         player2 = player_n1[player1][suiji];
@@ -272,9 +277,13 @@ void game(void)
         //if(strat1!=strat2)
         if(U1<=U2)
         {
-            dP=U1-U2;
+            dP = U1 - U2;
 
-            p=1/(1+exp(dP/K));
+            alpha = type1 == 0 ? alpha1 : alpha2;
+            dP_h = U1 - alpha;
+
+            p = (double)((1-u)/(1 + exp(dP/K)) + u/(1 + exp(dP_h/K)));
+            //p = 1/(1 + exp(dP/K));
             ran_p=randf();
             if(ran_p<=p)
             {
@@ -336,7 +345,8 @@ int main()
 
     printf("=============start===============\n");
     printf("PL=%f\n",b);
-    b=1.06;
+    b = 1.06;
+    u = 0.8;
     strcpy(fn, "FM");
     sprintf(na, "_PL=%f_b=%.2f.txt", b,b);
     strcat(fn, na);
