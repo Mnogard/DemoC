@@ -1,8 +1,7 @@
 //
-// Created by 11577 on 2021/3/18.
+// Created by 11577 on 2021/3/19.
 //
 //
-
 // standard include
 #include <stdlib.h>
 #include <stdio.h>
@@ -15,7 +14,7 @@
 #define SIZE        (L*L)    /* number of sites                */
 #define MC_STEPS    50000   /* run-time in MCS     */
 #define K           0.1     /* temperature */
-#define RUN    5
+#define RUN    1
 #define IN     4
 #define alpha1 2.0
 #define alpha2 5.0
@@ -234,7 +233,7 @@ void game(void)
         type2 = player_tp[player2];
 
         if(strat1!=strat2)   //考虑理性  非理性
-        //if(U1<=U2)
+            //if(U1<=U2)
         {
             dP = U1 - U2;
 
@@ -289,58 +288,57 @@ void each(void)
 int main()
 {
 
-    int i;
-    double aa,x,XX,sum,ave_p;
+    double aa,x,XX;
 
     char na[25];
     char fn[85];
 
-    int run;
+    int MC;
+
+    MC=MC_STEPS-2001;
 
     sgenrand(time(NULL));
     prodgraph();
-    each();
 
     printf("=============start===============\n");
-    printf("PL=%f\n",b);
-    b = 1.5;
-    u = 0.5;
-    strcpy(fn, "FM");
-    sprintf(na, "_PL=%f_b=%.2f.txt", b,b);
+    printf("Hope=%.1f~%.1f\n",alpha1,alpha2);
+    strcpy(fn, "Hot");
+    sprintf(na, "_Hope=%.1f~%.1f\n",alpha1,alpha2);
     strcat(fn, na);
     outfile2=fopen(fn,"w+");
 
-    for(run=1; run<=RUN; run++)        // 10 independent runs
+    for(b=1.0; b<=2.01; b=b+0.05)
     {
-        printf("run=%d\n",run);
+
+
         if(outfile2==NULL)
         {
             printf("can not open the file for writing!");
             abort();
         }
 
-        initial();
-
-        for (steps=0; steps<MC_STEPS; steps++)
+        for(u=0.0; u<=1.01; u=u+0.05)        // 10 independent runs
         {
-            tongji();
-            game();
-            if(steps%1==0)
-            {
-                x=(double)cooperator/SIZE;
-                each_p[steps] += x;
-                printf("%d\t %f\t %d\n", steps, x,run);
-            }
-        }
-    }
-    printf("-----------Average-------------\n");
-    for (i=0;i<MC_STEPS;i++)
-    {
-        ave_p=each_p[i]/RUN;
-        fprintf(outfile2, "%d\t %f\n", i+1, ave_p);
-        printf("%d\t %f\n", i, ave_p);
-    }
+            aa=0;
 
+            initial();
+
+            for (steps=0; steps<MC_STEPS; steps++)
+            {
+                game();
+                tongji();
+                if(steps>MC)
+                {
+                    x=(double)cooperator/SIZE;
+                    aa+=x;
+                }
+            }
+            XX=aa/2000;
+            fprintf(outfile2, "%.2f\t %.2f\t %f\n",b, u,XX);
+            printf("%.2f\t %.2f\t %f\n",b, u, XX);
+        }
+
+    }
     fclose(outfile2);
     fn[0]='\0';
 
@@ -348,6 +346,8 @@ int main()
 
     return 0;
 }
+
+
 
 
 
