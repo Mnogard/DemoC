@@ -13,13 +13,13 @@
 // define parameters
 #define L           100      /* lattice size                   */
 #define SIZE        (L*L)    /* number of sites                */
-#define MC_STEPS    20000   /* run-time in MCS     */
+#define MC_STEPS    50000   /* run-time in MCS     */
 #define K           0.1     /* temperature */
-#define RUN    1
+#define RUN    5
 #define IN     4
-#define derta 0.2
+#define derta 0.25
 #define alpha1 1.0
-#define alpha2 8.0
+#define alpha2 7.0
 
 
 int steps;
@@ -36,7 +36,7 @@ typedef double    tomb9[MC_STEPS];
 
 tomb1 player_s1;            /* matrix, containing player's strategies: 0 (C) & 1(D) */
 tomb3 player_n1;            /* matrix, containing players neighbours */
-tomb6 player_tp;
+tomb1 player_tp;
 tomb6 Si;
 
 
@@ -111,9 +111,10 @@ long randi(unsigned long LIM){ return((unsigned long)genrand() % LIM); }
 
 void initial(void)
 {
+    int i;
     double ran_p;
 
-    for(int i = 0; i < SIZE; i++)
+    for(i = 0; i < SIZE; i++)
     {
         Si[i]=0.5;
         ran_p=randf();
@@ -124,7 +125,7 @@ void initial(void)
             player_s1[i] = 1;
         }
     }
-    for(int i = 0; i < SIZE; i++)
+    for(i = 0; i < SIZE; i++)
     {
         player_tp[i]=(int)randi(2);		// 分成两个种群0、1
         //player_tp[i]=1;   //验证
@@ -273,8 +274,9 @@ void game(void)
         player2 = player_n1[player1][suiji];
         strat2 = player_s1[player2];
         U2=calc_payoff(player2);
+        type2 = player_tp[player2];
 
-        //if(strat1!=strat2)
+        //if(strat1!=strat2)   //考虑理性  非理性
         if(U1<=U2)
         {
             dP = U1 - U2;
@@ -288,7 +290,7 @@ void game(void)
             if(ran_p<=p)
             {
                 player_s1[player1]=strat2;
-                player_tp[player1] = player_tp[player2];
+                player_tp[player1] = type2;
                 Si[player1]=c_stra(player1,player2);
             }
         }
@@ -345,8 +347,8 @@ int main()
 
     printf("=============start===============\n");
     printf("PL=%f\n",b);
-    b = 1.06;
-    u = 0.8;
+    b = 1.5;
+    u = 0.5;
     strcpy(fn, "FM");
     sprintf(na, "_PL=%f_b=%.2f.txt", b,b);
     strcat(fn, na);
