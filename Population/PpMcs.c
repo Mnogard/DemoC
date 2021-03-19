@@ -17,9 +17,8 @@
 #define K           0.1     /* temperature */
 #define RUN    5
 #define IN     4
-#define derta 0.25
-#define alpha1 1.0
-#define alpha2 7.0
+#define alpha1 2.0
+#define alpha2 5.0
 
 
 int steps;
@@ -37,7 +36,6 @@ typedef double    tomb9[MC_STEPS];
 tomb1 player_s1;            /* matrix, containing player's strategies: 0 (C) & 1(D) */
 tomb3 player_n1;            /* matrix, containing players neighbours */
 tomb1 player_tp;
-tomb6 Si;
 
 
 tomb9 each_p;
@@ -47,7 +45,6 @@ void prodgraph(void);
 void initial(void);
 void game(void);
 void tongji(void);
-double c_stra(int,int);
 
 
 FILE *outfile2;
@@ -112,13 +109,13 @@ long randi(unsigned long LIM){ return((unsigned long)genrand() % LIM); }
 void initial(void)
 {
     int i;
-    double ran_p;
+    double ran_p,pc;
 
     for(i = 0; i < SIZE; i++)
     {
-        Si[i]=0.5;
+        pc=0.5;
         ran_p=randf();
-        if (ran_p <= Si[i])
+        if (ran_p <= pc)
         {
             player_s1[i] = 0;
         } else {
@@ -129,23 +126,6 @@ void initial(void)
     {
         player_tp[i]=(int)randi(2);		// 分成两个种群0、1
         //player_tp[i]=1;   //验证
-    }
-}
-
-void c_initial(void)
-{
-    int i;
-    double ran_p;
-
-    for(i=0;i<SIZE;i++)
-    {
-        ran_p=randf();
-        if (ran_p <= Si[i])
-        {
-            player_s1[i] = 0;
-        } else {
-            player_s1[i] = 1;
-        }
     }
 }
 
@@ -196,29 +176,6 @@ void prodgraph(void)
     }
 }
 
-double c_stra(int player1,int player2)
-{
-    if (player_s1[player2] == 0)
-    {
-        Si[player1] += derta;
-    }
-    else
-    {
-        Si[player1] -= derta;
-    }
-    if(Si[player1]>=1)
-    {
-        Si[player1]=1;
-    }else if(Si[player1]<=0)
-    {
-        Si[player1]=0;
-    }
-    else
-    {
-        Si[player1]=Si[player1];
-    }
-    return Si[player1];
-}
 
 double calc_payoff(int player1)
 {
@@ -276,8 +233,8 @@ void game(void)
         U2=calc_payoff(player2);
         type2 = player_tp[player2];
 
-        //if(strat1!=strat2)   //考虑理性  非理性
-        if(U1<=U2)
+        if(strat1!=strat2)   //考虑理性  非理性
+        //if(U1<=U2)
         {
             dP = U1 - U2;
 
@@ -291,7 +248,6 @@ void game(void)
             {
                 player_s1[player1]=strat2;
                 player_tp[player1] = type2;
-                Si[player1]=c_stra(player1,player2);
             }
         }
     }
@@ -369,7 +325,6 @@ int main()
         {
             tongji();
             game();
-            c_initial();
             if(steps%1==0)
             {
                 x=(double)cooperator/SIZE;
