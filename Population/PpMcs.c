@@ -15,17 +15,16 @@
 #define SIZE        (L*L)    /* number of sites                */
 #define MC_STEPS    50000   /* run-time in MCS     */
 #define K           0.1     /* temperature */
-#define RUN    5
+#define RUN    1
 #define IN     4
-#define alpha1 2.0
-#define alpha2 5.0
+#define alpha1 3.0
+#define alpha2 3.0
 
 
 int steps;
 int defector, cooperator;
 
 double b;
-double u;
 
 typedef int       tomb1[SIZE];
 typedef long int  tomb3[SIZE][IN];
@@ -125,7 +124,7 @@ void initial(void)
     for(i = 0; i < SIZE; i++)
     {
         player_tp[i]=(int)randi(2);		// 分成两个种群0、1
-        //player_tp[i]=1;   //验证
+        //player_tp[i]=0;   //验证
     }
 }
 
@@ -218,7 +217,7 @@ void game(void)
 
     double p,dP,dP_h;
     double ran_p;
-    double alpha;
+    double alpha,u,du;
 
     for(i=0;i<SIZE;i++)
     {
@@ -239,6 +238,13 @@ void game(void)
             dP = U1 - U2;
 
             alpha = type1 == 0 ? alpha1 : alpha2;
+
+            if(U1 >= 0) {
+                u = (double)((exp(alpha - U1)) / exp(alpha));
+            }else{
+                u = 1;
+            }
+
             dP_h = U1 - alpha;
 
             p = (double)((1-u)/(1 + exp(dP/K)) + u/(1 + exp(dP_h/K)));
@@ -304,7 +310,6 @@ int main()
     printf("=============start===============\n");
     printf("PL=%f\n",b);
     b = 1.5;
-    u = 0.5;
     strcpy(fn, "FM");
     sprintf(na, "_PL=%f_b=%.2f.txt", b,b);
     strcat(fn, na);

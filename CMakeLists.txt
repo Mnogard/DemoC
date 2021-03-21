@@ -9,3 +9,5 @@ add_executable(PpHot Population/PpHot.c)
 add_executable(Hope Hope/Hope.c)
 
 add_executable(MppMcs MemoryPp/MppMcs.c)
+
+add_executable(Demo Demo.c)

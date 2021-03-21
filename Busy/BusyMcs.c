@@ -17,15 +17,15 @@
 #define K           0.1     /* temperature */
 #define RUN 1
 #define IN 4
-#define pc_b 0.5
-#define pc_Tb  0.5
+#define pc_b 0.3
+#define pc_Tb  0.001
 
 
 int steps;
 int defector, cooperator;
 int busyer, nbusyer;
 
-double b;
+double r;
 
 typedef int       tomb1[SIZE];
 typedef long int  tomb3[SIZE][IN];
@@ -221,9 +221,9 @@ double calc_payoff(int player1)
         if(player_s1[player1]==0 && player_s1[player2]==0)
             payoff += 1;
         else if(player_s1[player1]==0 && player_s1[player2]==1)
-            payoff += 0;
+            payoff += -r;
         else if(player_s1[player1]==1 && player_s1[player2]==0)
-            payoff += b;
+            payoff += 1+r;
         else
             payoff += 0;
     }
@@ -267,50 +267,48 @@ void game(void)
         player1 = (int) randi(SIZE);
         type1 = player_type[player1];
 
+        if(type1 == 1) {
+//            if(typeBusy(player1)==-1)
+//            {
+//                strat1 = player_s1[player1];
+//                ran_p=randf();
+//                //busy和周围都是busy的个体，将按照突变概率进行突变
+//                if(ran_p<=pc_Tb)
+//                {
+//                    player_s1[player1]= strat1==1? 0:1;
+//                }
+//                continue;
+//            }else{
+//                while(1)
+//                {
+                    suiji = (int) randi(IN);
+                    player2 = player_n1[player1][suiji];
+                    type2 = player_type[player2];
 
-        if(typeBusy(player1)==-1 || type1==0)
-        {
-            strat1 = player_s1[player1];
-            ran_p=randf();
-            //busy和周围都是busy的个体，将按照突变概率进行突变
-            if(ran_p<=pc_Tb)
-            {
-                player_s1[player1]= strat1==1? 0:1;
-            }
-            continue;
-        }else{
-            while(1)
-            {
-                suiji = (int) randi(IN);
-                player2 = player_n1[player1][suiji];
-                type2 = player_type[player2];
+//                    if(type2==1)
+//                    {
+                        strat1 = player_s1[player1];
+                        U1 =calc_payoff(player1);
+                        strat2 = player_s1[player2];
+                        U2 =calc_payoff(player2);
 
-                if(type2==1)
-                {
-                    strat1 = player_s1[player1];
-                    U1 =calc_payoff(player1);
-                    strat2 = player_s1[player2];
-                    U2 =calc_payoff(player2);
-
-                    if(strat1!=strat2)
-                    {
-                        dP=U1-U2;
-
-
-                        p=1/(1+exp(dP/K));
-                        ran_p=randf();
-                        if(ran_p<=p)
+                        if(strat1!=strat2)
                         {
-                            player_s1[player1]=strat2;
+                            dP=U2-U1;
+
+
+                            p=1/(1+exp(dP/K));
+                            ran_p=randf();
+                            if(ran_p<=p)
+                            {
+                                player_s1[player2]=strat1;
+                            }
                         }
-                    }
-                    break;
-                }
-            }
+//                        break;
+//                    }
+                //}
+            //}
         }
-
-
-
     }
 }
 
@@ -362,10 +360,10 @@ int main()
     each();
 
     printf("=============start===============\n");
-    printf("PL=%f\n",b);
-    b=1.0;
+    printf("PL=%f\n",r);
+    r=0.00;
     strcpy(fn, "FM");
-    sprintf(na, "_PL=%f_b=%.2f.txt", b,b);
+    sprintf(na, "_PL=%f_b=%.2f.txt", r,r);
     strcat(fn, na);
     outfile2=fopen(fn,"w+");
 
@@ -386,7 +384,10 @@ int main()
         {
             tongji();
             game();
-            init_initial();
+            if(steps % 100 == 0) {
+                init_initial();
+            }
+
             if(steps%1==0)
             {
                 x=(double)cooperator/SIZE;
