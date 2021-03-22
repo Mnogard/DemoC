@@ -1,4 +1,4 @@
-//
+
 // Created by 莫莫 on 2021/2/17.
 //
 // 异步
@@ -17,8 +17,7 @@
 #define K           0.1     /* temperature */
 #define RUN 1
 #define IN 4
-#define pc_b 0.3
-#define Cycle  1000
+#define Cycle  500
 
 
 #define pc_Tb  0.001
@@ -29,6 +28,7 @@ int defector, cooperator;
 int busyer, nbusyer;
 
 double r;
+double pc_b;
 
 typedef int       tomb1[SIZE];
 typedef long int  tomb3[SIZE][IN];
@@ -39,7 +39,6 @@ typedef double    tomb9[MC_STEPS];
 tomb1 player_s1;            /* matrix, containing player's strategies: 0 (C) & 1(D) */
 tomb3 player_n1;            /* matrix, containing players neighbours */
 tomb1 player_type;
-tomb1 player_typem;
 
 tomb9 each_p;
 
@@ -162,36 +161,6 @@ void init_initial()
     }
 }
 
-//每次更新busy，上局busy不可busy
-//void init_initial()
-//{
-//    int i, j;
-//    int pos;
-//
-//    busyer=(int)(SIZE*pc_b); 	// initial number of cooperators
-//    nbusyer=SIZE-busyer;
-//
-//
-//    for(i = 0; i < SIZE; i++) {
-//        player_typem[i] = player_type[i];
-//    }
-//
-//    for (i=0; i<SIZE; i++)
-//    {
-//        player_type[i]=1;
-//    }
-//
-//    for(i=0; i<busyer; i++)
-//    {
-//        do
-//        {
-//            pos=randi(SIZE);
-//            if(player_type[pos]==1 && player_typem[pos] == 1)
-//                break;
-//        }while(1);
-//        player_type[pos]=0;   //type = 0 is busyer
-//    }
-//}
 
 
 // creates first a square grid graph and then rewires Q links
@@ -315,33 +284,32 @@ void game(void)
 //            }else{
 //                while(1)
 //                {
-                    suiji = (int) randi(IN);
-                    player2 = player_n1[player1][suiji];
-                    type2 = player_type[player2];
+            suiji = (int) randi(IN);
+            player2 = player_n1[player1][suiji];
+            type2 = player_type[player2];
 
 //                    if(type2==1)
 //                    {
-                        strat1 = player_s1[player1];
-                        U1 =calc_payoff(player1);
-                        strat2 = player_s1[player2];
-                        U2 =calc_payoff(player2);
+            strat1 = player_s1[player1];
+            U1 =calc_payoff(player1);
+            strat2 = player_s1[player2];
+            U2 =calc_payoff(player2);
 
-                        if(strat1!=strat2)
-                        {
-                            dP=U2-U1;
+            if(strat1!=strat2)
+            {
+                dP=U2-U1;
 
 
-                            p=1/(1+exp(dP/K));
-                            ran_p=randf();
-                            if(ran_p<=p)
-                            {
-                                player_s1[player2]=strat1;
-                                //player_type[player2] = player_s1[player2] == 0 ? type1 : type2;  //教c后摆脱busy
-                            }
-                        }
+                p=1/(1+exp(dP/K));
+                ran_p=randf();
+                if(ran_p<=p)
+                {
+                    player_s1[player2]=strat1;
+                }
+            }
 //                        break;
 //                    }
-                //}
+            //}
             //}
         }
     }
@@ -378,69 +346,63 @@ void each(void)
 }
 
 
-
 int main()
 {
 
-    int i;
-    double aa,x,XX,sum,ave_p;
+    double aa,x,XX;
 
     char na[25];
     char fn[85];
 
-    int run;
+    int MC;
+
+    MC=MC_STEPS-2001;
 
     sgenrand(time(NULL));
     prodgraph();
-    each();
 
     printf("=============start===============\n");
     printf("Cycle=%d\n",Cycle);
-    r=0.04;
     strcpy(fn, "Busy");
-    sprintf(na, "_Cycle=%d_r=%.2f.txt", Cycle,r);
+    sprintf(na, "_Cycle=%d.txt", Cycle);
     strcat(fn, na);
     outfile2=fopen(fn,"w+");
 
-    for(run=1; run<=RUN; run++)        // 10 independent runs
+    for(r=0.0; r<=1.01; r=r+0.05)
     {
-        printf("run=%d\n",run);
+
+
         if(outfile2==NULL)
         {
             printf("can not open the file for writing!");
             abort();
         }
 
-        initial();
-
-        for (steps=0; steps<MC_STEPS; steps++)
+        for(pc_b=0.0; pc_b<=1.01; pc_b=pc_b+0.05)        // 10 independent runs
         {
+            aa=0;
 
-            tongji();
-            game();
-            if(steps % Cycle == 0) {
-                init_initial();
-            }
+            initial();
 
-            if(steps%1==0)
+            for (steps=0; steps<MC_STEPS; steps++)
             {
-                x=(double)cooperator/SIZE;
-                each_p[steps] += x;
-                printf("%d\t %f\t %d\n", steps, x,run);
+                tongji();
+                game();
+                if(steps % Cycle == 0) {
+                    init_initial();
+                }
+                if(steps>MC)
+                {
+                    x=(double)cooperator/SIZE;
+                    aa+=x;
+                }
             }
-
+            XX=aa/2000;
+            fprintf(outfile2, "%.2f\t %.2f\t %f\n",r, pc_b,XX);
+            printf("%.2f\t %.2f\t %f\n",r, pc_b, XX);
         }
 
-
     }
-    printf("-----------Average-------------\n");
-    for (i=0;i<MC_STEPS;i++)
-    {
-        ave_p=each_p[i]/RUN;
-        fprintf(outfile2, "%d\t %f\n", i+1, ave_p);
-        printf("%d\t %f\n", i, ave_p);
-    }
-
     fclose(outfile2);
     fn[0]='\0';
 
@@ -448,6 +410,5 @@ int main()
 
     return 0;
 }
-
 
 
