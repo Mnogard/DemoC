@@ -5,6 +5,7 @@ set(CMAKE_C_STANDARD 99)
 
 add_executable(BusyMcs Busy/BusyMcs.c)
 add_executable(BusyHot Busy/BusyHot.c)
+add_executable(BusyQu Busy/BusyQu.c)
 
 
 add_executable(PpMcs Population/PpMcs.c)

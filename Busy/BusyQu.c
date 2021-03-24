@@ -15,9 +15,10 @@
 #define SIZE        (L*L)    /* number of sites                */
 #define MC_STEPS    50000   /* run-time in MCS     */
 #define K           0.1     /* temperature */
-#define RUN 1
+#define RUN 5
 #define IN 4
 #define Cycle  500
+#define pc_b 0.5
 
 
 #define pc_Tb  0.001
@@ -28,7 +29,6 @@ int defector, cooperator;
 int busyer, nbusyer;
 
 double r;
-double pc_b;
 
 typedef int       tomb1[SIZE];
 typedef long int  tomb3[SIZE][IN];
@@ -271,25 +271,11 @@ void game(void)
         type1 = player_type[player1];
 
         if(type1 == 1) {
-//            if(typeBusy(player1)==-1)
-//            {
-//                strat1 = player_s1[player1];
-//                ran_p=randf();
-//                //busy和周围都是busy的个体，将按照突变概率进行突变
-//                if(ran_p<=pc_Tb)
-//                {
-//                    player_s1[player1]= strat1==1? 0:1;
-//                }
-//                continue;
-//            }else{
-//                while(1)
-//                {
+
             suiji = (int) randi(IN);
             player2 = player_n1[player1][suiji];
             type2 = player_type[player2];
 
-//                    if(type2==1)
-//                    {
             strat1 = player_s1[player1];
             U1 =calc_payoff(player1);
             strat2 = player_s1[player2];
@@ -299,7 +285,6 @@ void game(void)
             {
                 dP=U2-U1;
 
-
                 p=1/(1+exp(dP/K));
                 ran_p=randf();
                 if(ran_p<=p)
@@ -307,10 +292,6 @@ void game(void)
                     player_s1[player2]=strat1;
                 }
             }
-//                        break;
-//                    }
-            //}
-            //}
         }
     }
 }
@@ -349,12 +330,13 @@ void each(void)
 int main()
 {
 
-    double aa,x,XX;
+    double aa,x,XX,sum,ave_p;
 
     char na[25];
     char fn[85];
 
     int MC;
+    int run;
 
     MC=MC_STEPS-2001;
 
@@ -362,15 +344,15 @@ int main()
     prodgraph();
 
     printf("=============start===============\n");
-    printf("Cycle=%d\n",Cycle);
-    strcpy(fn, "Busy");
-    sprintf(na, "_Cycle=%d.txt", Cycle);
+    printf("u=%.2f_Cycle=%d\n",pc_b,Cycle);
+    strcpy(fn, "Qu");
+    sprintf(na, "_u=%.2f_Cycle=%d.txt",pc_b,Cycle);
     strcat(fn, na);
     outfile2=fopen(fn,"w+");
 
-    for(r=0.0; r<=1.01; r=r+0.05)
+    for(r=0.0; r<=0.31; r=r+0.015)
     {
-
+        sum = 0.0;
 
         if(outfile2==NULL)
         {
@@ -378,7 +360,7 @@ int main()
             abort();
         }
 
-        for(pc_b=0.0; pc_b<=1.01; pc_b=pc_b+0.05)        // 10 independent runs
+        for(run=1; run<=RUN; run++)        // 10 independent runs
         {
             aa=0;
 
@@ -398,10 +380,14 @@ int main()
                 }
             }
             XX=aa/2000;
-            fprintf(outfile2, "%.3f\t %.2f\t %f\n",r, pc_b,XX);
-            printf("%.3f\t %.2f\t %f\n",r, pc_b, XX);
+            printf("%.3f\t %f\n", r, XX);
+            sum += XX;
         }
-
+        ave_p = sum/RUN;
+        printf("---------Average---------\n");
+        fprintf(outfile2, "%.3f\t %f\n",r,ave_p);
+        printf("%.3f\t %f\n",r, ave_p);
+        printf("\n");
     }
     fclose(outfile2);
     fn[0]='\0';
@@ -410,5 +396,4 @@ int main()
 
     return 0;
 }
-
 
