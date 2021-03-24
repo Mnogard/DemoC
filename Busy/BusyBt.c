@@ -11,14 +11,14 @@
 #include <time.h>
 
 // define parameters
-#define L           100      /* lattice size                   */
+#define L           200      /* lattice size                   */
 #define SIZE        (L*L)    /* number of sites                */
 #define MC_STEPS    50000   /* run-time in MCS     */
 #define K           0.1     /* temperature */
 #define RUN 1
 #define IN 4
-#define pc_b 0.7
-#define Cycle  500
+#define pc_b 0.5
+#define Cycle  50
 
 
 #define pc_Tb  0.001
@@ -315,33 +315,33 @@ void game(void)
 //            }else{
 //                while(1)
 //                {
-                    suiji = (int) randi(IN);
-                    player2 = player_n1[player1][suiji];
-                    type2 = player_type[player2];
+            suiji = (int) randi(IN);
+            player2 = player_n1[player1][suiji];
+            type2 = player_type[player2];
 
 //                    if(type2==1)
 //                    {
-                        strat1 = player_s1[player1];
-                        U1 =calc_payoff(player1);
-                        strat2 = player_s1[player2];
-                        U2 =calc_payoff(player2);
+            strat1 = player_s1[player1];
+            U1 =calc_payoff(player1);
+            strat2 = player_s1[player2];
+            U2 =calc_payoff(player2);
 
-                        if(strat1!=strat2)
-                        {
-                            dP=U2-U1;
+            if(strat1!=strat2)
+            {
+                dP=U2-U1;
 
 
-                            p=1/(1+exp(dP/K));
-                            ran_p=randf();
-                            if(ran_p<=p)
-                            {
-                                player_s1[player2]=strat1;
-                                //player_type[player2] = player_s1[player2] == 0 ? type1 : type2;  //教c后摆脱busy
-                            }
-                        }
+                p=1/(1+exp(dP/K));
+                ran_p=randf();
+                if(ran_p<=p)
+                {
+                    player_s1[player2]=strat1;
+                    //player_type[player2] = player_s1[player2] == 0 ? type1 : type2;  //教c后摆脱busy
+                }
+            }
 //                        break;
 //                    }
-                //}
+            //}
             //}
         }
     }
@@ -368,15 +368,6 @@ void tongji(void)
     }
 }
 
-void each(void)
-{
-    int i;
-    for(i=0;i<MC_STEPS;i++)
-    {
-        each_p[i]=0.0;
-    }
-}
-
 
 
 int main()
@@ -392,57 +383,68 @@ int main()
 
     sgenrand(time(NULL));
     prodgraph();
-    each();
 
     printf("=============start===============\n");
     printf("Cycle=%d\n",Cycle);
+
+    initial();
     r=0.05;
-    strcpy(fn, "MCS");
-    sprintf(na, "_u=%.1f_C=%d_r=%.2f.txt",pc_b, Cycle,r);
-    strcat(fn, na);
-    outfile2=fopen(fn,"w+");
 
-    for(run=1; run<=RUN; run++)        // 10 independent runs
+    for (steps=0; steps<=MC_STEPS; steps++)
     {
-        printf("run=%d\n",run);
-        if(outfile2==NULL)
+        tongji();
+        game();
+        printf("%d\n",steps);
+
+        if(steps==0||steps==50||steps==100||steps==1000||steps==20000)
         {
-            printf("can not open the file for writing!");
-            abort();
-        }
+            strcpy(fn, "BT");
+            sprintf(na, "_u=%.1f_C=%d_s=%d.dat",pc_b, Cycle,steps);
+            strcat(fn, na);
+            outfile2=fopen(fn,"w+");
 
-        initial();
-
-        for (steps=0; steps<MC_STEPS; steps++)
-        {
-
-            tongji();
-            game();
-            if(steps % Cycle == 0) {
-                init_initial();
-            }
-
-            if(steps%1==0)
+            if(outfile2==NULL)
             {
-                x=(double)cooperator/SIZE;
-                each_p[steps] += x;
-                printf("%d\t %f\t %d\n", steps, x,run);
+                printf("can not open the file for writing!");
+                abort();
             }
 
+            for(i=0;i<SIZE;i++)
+            {
+                if((i%200)!=0)
+                {
+                    if(player_s1[i]==0 && player_type[i]==0) {    //CBusy:0  CN:1  DBusy:2  DN:3
+                        fprintf(outfile2,"%d\t",0);
+                    }else if(player_s1[i]==0 && player_type[i]==1) {
+                        fprintf(outfile2,"%d\t",1);
+                    }else if(player_s1[i]==1 && player_type[i]==0) {
+                        fprintf(outfile2,"%d\t",2);
+                    }else{
+                        fprintf(outfile2,"%d\t",3);
+                    }
+                }
+                else
+                {
+                    if(player_s1[i]==0 && player_type[i]==0) {
+                        fprintf(outfile2,"%d\n",0);
+                    }else if(player_s1[i]==0 && player_type[i]==1) {
+                        fprintf(outfile2,"%d\n",1);
+                    }else if(player_s1[i]==1 && player_type[i]==0) {
+                        fprintf(outfile2,"%d\n",2);
+                    }else{
+                        fprintf(outfile2,"%d\n",3);
+                    }
+                }
+
+            }
+            fclose(outfile2);
+            fn[0]='\0';
+        }
+        if(steps % Cycle == 0) {
+            init_initial();
         }
 
-
     }
-    printf("-----------Average-------------\n");
-    for (i=0;i<MC_STEPS;i++)
-    {
-        ave_p=each_p[i]/RUN;
-        fprintf(outfile2, "%d\t %f\n", i+1, ave_p);
-        printf("%d\t %f\n", i, ave_p);
-    }
-
-    fclose(outfile2);
-    fn[0]='\0';
 
     printf("=============end===============\n");
 

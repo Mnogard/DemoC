@@ -15,13 +15,10 @@
 #define SIZE        (L*L)    /* number of sites                */
 #define MC_STEPS    50000   /* run-time in MCS     */
 #define K           0.1     /* temperature */
-#define RUN 1
+#define RUN 15
 #define IN 4
-#define pc_b 0.7
-#define Cycle  500
-
-
-#define pc_Tb  0.001
+#define pc_b 0.5
+#define Cycle  1000
 
 
 int steps;
@@ -302,47 +299,29 @@ void game(void)
         type1 = player_type[player1];
 
         if(type1 == 1) {
-//            if(typeBusy(player1)==-1)
-//            {
-//                strat1 = player_s1[player1];
-//                ran_p=randf();
-//                //busy和周围都是busy的个体，将按照突变概率进行突变
-//                if(ran_p<=pc_Tb)
-//                {
-//                    player_s1[player1]= strat1==1? 0:1;
-//                }
-//                continue;
-//            }else{
-//                while(1)
-//                {
-                    suiji = (int) randi(IN);
-                    player2 = player_n1[player1][suiji];
-                    type2 = player_type[player2];
 
-//                    if(type2==1)
-//                    {
-                        strat1 = player_s1[player1];
-                        U1 =calc_payoff(player1);
-                        strat2 = player_s1[player2];
-                        U2 =calc_payoff(player2);
+            suiji = (int) randi(IN);
+            player2 = player_n1[player1][suiji];
+            type2 = player_type[player2];
 
-                        if(strat1!=strat2)
-                        {
-                            dP=U2-U1;
+            strat1 = player_s1[player1];
+            U1 =calc_payoff(player1);
+            strat2 = player_s1[player2];
+            U2 =calc_payoff(player2);
+
+            if(strat1!=strat2)
+            {
+                dP=U2-U1;
 
 
-                            p=1/(1+exp(dP/K));
-                            ran_p=randf();
-                            if(ran_p<=p)
-                            {
-                                player_s1[player2]=strat1;
-                                //player_type[player2] = player_s1[player2] == 0 ? type1 : type2;  //教c后摆脱busy
-                            }
-                        }
-//                        break;
-//                    }
-                //}
-            //}
+                p=1/(1+exp(dP/K));
+                ran_p=randf();
+                if(ran_p<=p)
+                {
+                    player_s1[player2]=strat1;
+                    //player_type[player2] = player_s1[player2] == 0 ? type1 : type2;  //教c后摆脱busy
+                }
+            }
         }
     }
 }
